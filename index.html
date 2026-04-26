@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TMT トレーニング</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f4f3ef;
+  --bg2: #eceae4;
+  --bg3: #ffffff;
+  --text: #1a1a18;
+  --text2: #5a5954;
+  --text3: #9a9890;
+  --border: rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.18);
+  --blue: #185FA5;
+  --blue-light: #E6F1FB;
+  --blue-dark: #0C447C;
+  --purple: #534AB7;
+  --purple-light: #EEEDFE;
+  --purple-dark: #3C3489;
+  --teal: #0F6E56;
+  --teal-light: #E1F5EE;
+  --teal-dark: #085041;
+  --red: #A32D2D;
+  --red-light: #FCEBEB;
+  --amber: #BA7517;
+  --amber-light: #FAEEDA;
+  --green: #3B6D11;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141412;
+    --bg2: #1e1e1b;
+    --bg3: #252521;
+    --text: #e8e6e0;
+    --text2: #9a9890;
+    --text3: #5a5954;
+    --border: rgba(255,255,255,0.09);
+    --border2: rgba(255,255,255,0.16);
+    --blue-light: #0C447C;
+    --blue-dark: #E6F1FB;
+    --purple-light: #3C3489;
+    --purple-dark: #CECBF6;
+    --teal-light: #085041;
+    --teal-dark: #9FE1CB;
+    --red-light: #4A1B0C;
+    --amber-light: #412402;
+  }
+}
+
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; }
+
+#app { height: 100vh; display: flex; flex-direction: column; }
+
+.screen { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
+.screen.active { display: flex; }
+
+/* ===== HOME ===== */
+#home-screen { background: var(--bg); }
+.home-inner { flex: 1; overflow-y: auto; padding: 1rem; -webkit-overflow-scrolling: touch; }
+
+.home-header { text-align: center; padding: 1.25rem 0 1rem; }
+.home-header h1 { font-size: 21px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; margin-bottom: 4px; }
+.home-header p { font-size: 13px; color: var(--text2); }
+
+.mode-grid { display: flex; flex-direction: column; gap: 9px; margin: 0.75rem 0; }
+.mode-card {
+  background: var(--bg3); border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1rem 1.1rem;
+  cursor: pointer; display: flex; align-items: center; gap: 13px;
+  transition: background 0.1s, border-color 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.mode-card:active { background: var(--bg2); }
+.mode-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.mode-icon.a { background: var(--blue-light); color: var(--blue); }
+.mode-icon.b { background: var(--purple-light); color: var(--purple); }
+.mode-icon.ab { background: var(--teal-light); color: var(--teal); }
+.mode-info { flex: 1; min-width: 0; }
+.mode-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.mode-desc { font-size: 12px; color: var(--text2); line-height: 1.45; }
+.mode-arrow { color: var(--text3); font-size: 18px; font-weight: 300; }
+
+.info-card {
+  background: var(--bg3); border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg); padding: 0.9rem 1.1rem;
+  font-size: 12px; color: var(--text2); line-height: 1.7; margin-top: 0.5rem;
+}
+.info-card strong { color: var(--text); font-weight: 600; }
+
+.home-footer {
+  padding: 0.5rem 1rem 1rem;
+  display: flex; justify-content: flex-end;
+}
+
+/* ===== TASK ===== */
+#task-screen { background: var(--bg2); }
+.task-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.65rem 1rem; background: var(--bg3);
+  border-bottom: 0.5px solid var(--border); flex-shrink: 0;
+}
+.part-badge { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 5px; margin-bottom: 2px; display: inline-block; }
+.part-badge.a { background: var(--blue-light); color: var(--blue); }
+.part-badge.b { background: var(--purple-light); color: var(--purple); }
+.progress-txt { font-size: 13px; color: var(--text2); }
+.timer-wrap { text-align: center; }
+.timer { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); letter-spacing: 0.02em; }
+.timer.warn { color: var(--amber); }
+.timer.danger { color: var(--red); }
+
+.canvas-wrap { flex: 1; position: relative; overflow: hidden; touch-action: none; }
+#tmt-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ===== INTER ===== */
+#inter-screen { background: var(--bg); }
+.inter-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.65rem 1rem; background: var(--bg3);
+  border-bottom: 0.5px solid var(--border); flex-shrink: 0;
+}
+.inter-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1.5rem; text-align: center; }
+.inter-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.inter-sub { font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; line-height: 1.6; }
+.inter-box {
+  background: var(--bg3); border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1rem 1.5rem;
+  width: 100%; max-width: 300px; margin-bottom: 1.5rem;
+}
+.inter-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; }
+.inter-row .il { color: var(--text2); }
+.inter-row .iv { font-weight: 600; color: var(--text); }
+
+/* ===== RESULT ===== */
+#result-screen { background: var(--bg); }
+.result-header {
+  padding: 0.75rem 1rem 0.5rem;
+  background: var(--bg3); border-bottom: 0.5px solid var(--border);
+  flex-shrink: 0;
+}
+.result-header h2 { font-size: 17px; font-weight: 600; color: var(--text); }
+.result-header .rdate { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.result-body { flex: 1; overflow-y: auto; padding: 1rem; -webkit-overflow-scrolling: touch; }
+.result-footer { padding: 0.75rem 1rem 1rem; background: var(--bg3); border-top: 0.5px solid var(--border); display: flex; gap: 8px; flex-shrink: 0; }
+
+.section-label { font-size: 12px; font-weight: 600; color: var(--text2); margin: 12px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.section-label:first-child { margin-top: 0; }
+
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.metric { background: var(--bg2); border-radius: var(--radius); padding: 0.8rem 0.9rem; }
+.metric .ml { font-size: 11px; color: var(--text2); margin-bottom: 3px; }
+.metric .mv { font-size: 21px; font-weight: 600; color: var(--text); }
+.metric .ms { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+.analysis-card { background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.1rem; margin-bottom: 8px; }
+.ba-ratio { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.ba-num { font-size: 30px; font-weight: 700; }
+.ba-label { font-size: 12px; line-height: 1.4; }
+.ba-bar-wrap { height: 7px; border-radius: 4px; background: var(--border); overflow: hidden; margin-bottom: 5px; }
+.ba-fill { height: 100%; border-radius: 4px; transition: width 0.9s ease; }
+.ba-scale { font-size: 11px; color: var(--text3); }
+
+.error-badges { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 5px; }
+.ebadge { font-size: 12px; padding: 4px 10px; border-radius: var(--radius); }
+.ebadge.per { background: var(--red-light); color: var(--red); }
+.ebadge.set { background: var(--purple-light); color: var(--purple); }
+.ebadge.rnd { background: var(--bg2); color: var(--text2); }
+.error-note { font-size: 11px; color: var(--text3); line-height: 1.5; }
+.no-error { font-size: 13px; color: var(--teal); font-weight: 500; }
+
+/* ===== LOG ===== */
+#log-screen { background: var(--bg); }
+.log-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 1rem; background: var(--bg3);
+  border-bottom: 0.5px solid var(--border); flex-shrink: 0;
+}
+.log-header h2 { font-size: 17px; font-weight: 600; color: var(--text); }
+.log-body { flex: 1; overflow-y: auto; padding: 1rem; -webkit-overflow-scrolling: touch; }
+.log-footer { padding: 0.75rem 1rem 1rem; background: var(--bg3); border-top: 0.5px solid var(--border); flex-shrink: 0; }
+
+.log-entry { background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 0.9rem 1rem; margin-bottom: 8px; }
+.log-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.log-mode { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 5px; }
+.log-mode.a { background: var(--blue-light); color: var(--blue); }
+.log-mode.b { background: var(--purple-light); color: var(--purple); }
+.log-mode.ab { background: var(--teal-light); color: var(--teal); }
+.log-date { font-size: 11px; color: var(--text3); }
+.log-part-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.log-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.log-stat { font-size: 12px; color: var(--text2); }
+.log-stat b { font-weight: 600; color: var(--text); }
+.log-divider { height: 0.5px; background: var(--border); margin: 7px 0; }
+.log-ba { font-size: 12px; color: var(--text2); }
+.log-ba b { font-weight: 600; }
+.empty-log { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; line-height: 1.8; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 11px 20px; border-radius: var(--radius); border: 0.5px solid var(--border2);
+  background: var(--bg3); color: var(--text); font-size: 14px; font-weight: 500;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  font-family: inherit; transition: opacity 0.1s;
+}
+.btn:active { opacity: 0.75; }
+.btn.full { width: 100%; }
+.btn.sm { padding: 7px 14px; font-size: 12px; }
+.btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn.purple { background: var(--purple); color: #fff; border-color: var(--purple); }
+.btn.teal { background: var(--teal); color: #fff; border-color: var(--teal); }
+.btn.danger { background: var(--red); color: #fff; border-color: var(--red); }
+.flex-row { display: flex; gap: 8px; }
+.flex-row .btn { flex: 1; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ===== HOME ===== -->
+<div id="home-screen" class="screen active">
+  <div class="home-inner">
+    <div class="home-header">
+      <h1>TMT トレーニング</h1>
+      <p>Trail Making Test — 注意機能トレーニング</p>
+    </div>
+
+    <div class="mode-grid">
+      <div class="mode-card" onclick="startMode('A')">
+        <div class="mode-icon a">A</div>
+        <div class="mode-info">
+          <div class="mode-title">Part A のみ</div>
+          <div class="mode-desc">数字 1→2→…→25 を順にタップ<br>処理速度・注意力を評価</div>
+        </div>
+        <div class="mode-arrow">›</div>
+      </div>
+      <div class="mode-card" onclick="startMode('B')">
+        <div class="mode-icon b">B</div>
+        <div class="mode-info">
+          <div class="mode-title">Part B のみ</div>
+          <div class="mode-desc">1→ア→2→イ→…→12→ヲ を順にタップ<br>実行機能・切り替えを評価</div>
+        </div>
+        <div class="mode-arrow">›</div>
+      </div>
+      <div class="mode-card" onclick="startMode('AB')">
+        <div class="mode-icon ab">A+B</div>
+        <div class="mode-info">
+          <div class="mode-title">Part A → B 連続</div>
+          <div class="mode-desc">A完了後に続けてBを実施<br>B/A比によるセットシフティング評価が可能</div>
+        </div>
+        <div class="mode-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <strong>実施方法：</strong>丸をタップ（クリック）して順番に結んでください。間違えると赤く光ります。制限時間は5分で、丸の配置は毎回ランダムです。
+    </div>
+  </div>
+  <div class="home-footer">
+    <button class="btn sm" onclick="showLog()">📋 記録ログ</button>
+  </div>
+</div>
+
+<!-- ===== TASK ===== -->
+<div id="task-screen" class="screen">
+  <div class="task-header">
+    <div>
+      <div class="part-badge a" id="part-badge">Part A</div>
+      <div class="progress-txt" id="progress-txt">0 / 25</div>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer" id="timer">5:00</div>
+    </div>
+    <button class="btn sm danger" onclick="abortTask()">中止</button>
+  </div>
+  <div class="canvas-wrap" id="canvas-wrap">
+    <canvas id="tmt-canvas"></canvas>
+  </div>
+</div>
+
+<!-- ===== INTER (A→B) ===== -->
+<div id="inter-screen" class="screen">
+  <div class="inter-header">
+    <div>
+      <div class="part-badge a">Part A 完了</div>
+      <div class="progress-txt">次は Part B</div>
+    </div>
+    <div></div>
+    <button class="btn sm danger" onclick="abortTask()">中止</button>
+  </div>
+  <div class="inter-body">
+    <div class="inter-title">Part A 完了</div>
+    <div class="inter-sub" id="inter-sub">よくできました。<br>続けて Part B を実施します。</div>
+    <div class="inter-box" id="inter-box"></div>
+    <div class="inter-sub">1 → ア → 2 → イ … の順にタップしてください。</div>
+    <button class="btn purple" style="min-width:180px; margin-top:1rem;" onclick="proceedToB()">Part B を開始する</button>
+  </div>
+</div>
+
+<!-- ===== RESULT ===== -->
+<div id="result-screen" class="screen">
+  <div class="result-header">
+    <h2 id="result-title">結果</h2>
+    <div class="rdate" id="result-date"></div>
+  </div>
+  <div class="result-body" id="result-body"></div>
+  <div class="result-footer">
+    <button class="btn" style="flex:1" onclick="showHome()">ホームへ</button>
+    <button class="btn primary" style="flex:1" id="retry-btn">もう一度</button>
+  </div>
+</div>
+
+<!-- ===== LOG ===== -->
+<div id="log-screen" class="screen">
+  <div class="log-header">
+    <h2>記録ログ</h2>
+    <button class="btn sm danger" onclick="clearLog()">全削除</button>
+  </div>
+  <div class="log-body" id="log-body"></div>
+  <div class="log-footer">
+    <button class="btn full" onclick="showHome()">← ホームへ</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const HIRAGANA = ['ア','イ','ウ','エ','オ','カ','キ','ク','ケ','コ','サ','シ'];
+const LOG_KEY = 'tmt_logs_v1';
+
+let S = {
+  mode:'A', part:'A',
+  nodes:[], currentIndex:0,
+  startTime:null, elapsed:0,
+  timerInterval:null,
+  errors:0, errorTypes:{perseveration:0,set:0,random:0},
+  lastErrorNode:null, errorFlash:[], lines:[],
+  done:false, timeout:false,
+  resultA:null, resultB:null,
+};
+
+let canvas, ctx, wrap;
+
+function $$(id){ return document.getElementById(id); }
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $$(id).classList.add('active');
+}
+
+function showHome(){ stopTimer(); showScreen('home-screen'); }
+function showLog(){ showScreen('log-screen'); renderLog(); }
+
+function startMode(mode){
+  S.mode=mode; S.resultA=null; S.resultB=null;
+  startPart(mode==='B'?'B':'A');
+}
+
+function startPart(part){
+  S.part=part; S.nodes=[]; S.currentIndex=0;
+  S.startTime=null; S.elapsed=0;
+  S.errors=0; S.errorTypes={perseveration:0,set:0,random:0};
+  S.lastErrorNode=null; S.errorFlash=[]; S.lines=[];
+  S.done=false; S.timeout=false;
+  stopTimer();
+
+  const badge=$$('part-badge');
+  badge.textContent='Part '+part;
+  badge.className='part-badge '+part.toLowerCase();
+  const count=part==='A'?25:24;
+  $$('progress-txt').textContent='0 / '+count;
+  $$('timer').textContent='5:00';
+  $$('timer').className='timer';
+
+  showScreen('task-screen');
+  canvas=$$('tmt-canvas'); wrap=$$('canvas-wrap'); ctx=canvas.getContext('2d');
+  canvas.removeEventListener('click',handleClick);
+  canvas.removeEventListener('touchstart',handleTouch);
+
+  requestAnimationFrame(()=>{
+    initCanvas();
+    beginTask();
+  });
+}
+
+function initCanvas(){
+  const W=wrap.clientWidth, H=wrap.clientHeight;
+  canvas.width=W; canvas.height=H;
+  const count=S.part==='A'?25:24;
+  const r=Math.min(W,H)*0.037;
+  S.nodes=placeNodes(count,W,H,r);
+  drawAll();
+}
+
+function placeNodes(count,W,H,r){
+  const nodes=[]; const margin=r+8;
+  let tries=0;
+  while(nodes.length<count && tries<9000){
+    tries++;
+    const x=margin+Math.random()*(W-margin*2);
+    const y=margin+Math.random()*(H-margin*2);
+    let ok=true;
+    for(const n of nodes){ const dx=n.x-x,dy=n.y-y; if(Math.sqrt(dx*dx+dy*dy)<r*2.9){ok=false;break;} }
+    if(ok){
+      let label;
+      if(S.part==='A'){ label=String(nodes.length+1); }
+      else{ const i=nodes.length; label=(i%2===0)?String(Math.floor(i/2)+1):HIRAGANA[Math.floor(i/2)]; }
+      nodes.push({x,y,r,label,index:nodes.length});
+    }
+  }
+  return nodes;
+}
+
+function isDarkMode(){ return window.matchMedia('(prefers-color-scheme:dark)').matches; }
+
+function drawAll(){
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const dark=isDarkMode();
+  ctx.fillStyle=dark?'#1a1a18':'#eceae4';
+  ctx.fillRect(0,0,W,H);
+
+  if(S.lines.length>1){
+    ctx.strokeStyle=dark?'rgba(255,255,255,0.13)':'rgba(0,0,0,0.1)';
+    ctx.lineWidth=1.5;
+    for(let i=1;i<S.lines.length;i++){
+      ctx.beginPath();
+      ctx.moveTo(S.lines[i-1].x,S.lines[i-1].y);
+      ctx.lineTo(S.lines[i].x,S.lines[i].y);
+      ctx.stroke();
+    }
+  }
+
+  for(const n of S.nodes){
+    const done=n.index<S.currentIndex;
+    const flash=S.errorFlash.includes(n.index);
+    let fill,stroke,txt;
+    if(flash){
+      fill='#A32D2D'; stroke='#791F1F'; txt='#fff';
+    } else if(done){
+      fill=dark?'#0C447C':'#B5D4F4'; stroke=dark?'#378ADD':'#185FA5'; txt=dark?'#E6F1FB':'#0C447C';
+    } else {
+      fill=dark?'#2c2c28':'#ffffff'; stroke=dark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.13)'; txt=dark?'#b4b2aa':'#3a3834';
+    }
+    ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+    ctx.fillStyle=fill; ctx.fill();
+    ctx.strokeStyle=stroke; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle=txt;
+    const fs=n.r*(n.label.length>2?0.5:0.6);
+    ctx.font=`600 ${fs}px 'Hiragino Sans','Noto Sans JP',sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(n.label,n.x,n.y);
+  }
+}
+
+function beginTask(){
+  S.startTime=Date.now();
+  S.timerInterval=setInterval(()=>{
+    if(S.done) return;
+    S.elapsed=Date.now()-S.startTime;
+    const rem=300000-S.elapsed;
+    if(rem<=0){ stopTimer(); S.timeout=true; finishPart(); return; }
+    const s=Math.ceil(rem/1000),m=Math.floor(s/60),ss=s%60;
+    const el=$$('timer');
+    el.textContent=m+':'+String(ss).padStart(2,'0');
+    el.className='timer'+(rem<30000?' danger':rem<60000?' warn':'');
+  },200);
+  canvas.addEventListener('click',handleClick);
+  canvas.addEventListener('touchstart',handleTouch,{passive:false});
+}
+
+function stopTimer(){ if(S.timerInterval){clearInterval(S.timerInterval);S.timerInterval=null;} }
+
+function handleTouch(e){ e.preventDefault(); const t=e.touches[0]; const r=canvas.getBoundingClientRect(); handleTap(t.clientX-r.left,t.clientY-r.top); }
+function handleClick(e){ const r=canvas.getBoundingClientRect(); handleTap(e.clientX-r.left,e.clientY-r.top); }
+
+function handleTap(x,y){
+  if(S.done) return;
+  const sx=canvas.width/canvas.clientWidth, sy=canvas.height/canvas.clientHeight;
+  const cx=x*sx, cy=y*sy;
+  let hit=null;
+  for(const n of S.nodes){ const dx=n.x-cx,dy=n.y-cy; if(Math.sqrt(dx*dx+dy*dy)<=n.r*1.4){hit=n;break;} }
+  if(!hit) return;
+  if(hit.index===S.currentIndex){
+    S.lines.push({x:hit.x,y:hit.y});
+    S.currentIndex++;
+    const count=S.part==='A'?25:24;
+    $$('progress-txt').textContent=S.currentIndex+' / '+count;
+    if(S.currentIndex>=count){ S.done=true; stopTimer(); finishPart(); return; }
+    drawAll();
+  } else {
+    S.errors++;
+    if(S.lastErrorNode!==null&&hit.index===S.lastErrorNode){ S.errorTypes.perseveration++; }
+    else if(S.part==='B'){
+      const exp=S.nodes[S.currentIndex];
+      const eN=/\d/.test(exp.label), hN=/\d/.test(hit.label);
+      if(eN!==hN) S.errorTypes.set++;
+      else S.errorTypes.random++;
+    } else { S.errorTypes.random++; }
+    S.lastErrorNode=hit.index;
+    S.errorFlash.push(hit.index);
+    drawAll();
+    setTimeout(()=>{ const i=S.errorFlash.indexOf(hit.index); if(i!==-1)S.errorFlash.splice(i,1); drawAll(); },600);
+  }
+}
+
+function abortTask(){ stopTimer(); canvas.removeEventListener('click',handleClick); canvas.removeEventListener('touchstart',handleTouch); showHome(); }
+
+function finishPart(){
+  canvas.removeEventListener('click',handleClick);
+  canvas.removeEventListener('touchstart',handleTouch);
+  const sec=Math.min(S.elapsed/1000,300);
+  const count=S.part==='A'?25:24;
+  const result={
+    part:S.part, time:S.done?sec:null, timeout:S.timeout,
+    reached:S.currentIndex, count, errors:S.errors, errorTypes:{...S.errorTypes}
+  };
+  if(S.part==='A') S.resultA=result;
+  else S.resultB=result;
+
+  if(S.mode==='AB'&&S.part==='A'){
+    showInterScreen(result);
+  } else {
+    const session={mode:S.mode, date:new Date().toISOString(), resultA:S.resultA, resultB:S.resultB};
+    saveLog(session);
+    showResult(session);
+  }
+}
+
+function showInterScreen(r){
+  const t=r.time?r.time.toFixed(1)+'秒':'300秒超';
+  $$('inter-box').innerHTML=`
+    <div class="inter-row"><span class="il">完了タイム</span><span class="iv">${t}</span></div>
+    <div class="inter-row"><span class="il">達成数</span><span class="iv">${r.reached} / 25</span></div>
+    <div class="inter-row"><span class="il">エラー</span><span class="iv">${r.errors} 回</span></div>
+  `;
+  showScreen('inter-screen');
+}
+
+function proceedToB(){ startPart('B'); }
+
+function showResult(session){
+  const mLabel={A:'Part A のみ',B:'Part B のみ',AB:'Part A + B 連続'}[session.mode];
+  $$('result-title').textContent=mLabel+'  結果';
+  $$('result-date').textContent=new Date(session.date).toLocaleString('ja-JP');
+
+  let html='';
+
+  function partBlock(r,label){
+    const t=r.time?r.time.toFixed(1)+'秒':'300秒超';
+    const pct=r.reached+r.errors>0?Math.round(r.reached/(r.reached+r.errors)*100):0;
+    let h=`<div class="section-label">${label}</div>`;
+    h+=`<div class="metrics">
+      <div class="metric"><div class="ml">完了タイム</div><div class="mv">${t}</div><div class="ms">${r.timeout?'時間切れ':r.reached===r.count?'完了':'途中'}</div></div>
+      <div class="metric"><div class="ml">達成数</div><div class="mv">${r.reached}/${r.count}</div><div class="ms">個</div></div>
+      <div class="metric"><div class="ml">エラー数</div><div class="mv">${r.errors}</div><div class="ms">回</div></div>
+      <div class="metric"><div class="ml">正答率</div><div class="mv">${pct}%</div><div class="ms">&nbsp;</div></div>
+    </div>`;
+    const et=r.errorTypes;
+    h+=`<div class="analysis-card">`;
+    if(r.errors===0){
+      h+=`<div class="no-error">エラーなし — 正確に遂行できました</div>`;
+    } else {
+      h+=`<div class="error-badges">`;
+      if(et.perseveration>0) h+=`<span class="ebadge per">保続 ${et.perseveration}回</span>`;
+      if(et.set>0) h+=`<span class="ebadge set">セット ${et.set}回</span>`;
+      if(et.random>0) h+=`<span class="ebadge rnd">無関係 ${et.random}回</span>`;
+      h+=`</div><div class="error-note">`;
+      if(et.perseveration>0) h+=`保続：前頭葉の抑制機能に関わる可能性<br>`;
+      if(et.set>0) h+=`セット：切り替え（DLPFC）機能に関わる可能性<br>`;
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+    return h;
+  }
+
+  if(session.resultA) html+=partBlock(session.resultA,'Part A');
+  if(session.resultB) html+=partBlock(session.resultB,'Part B');
+
+  if(session.resultA?.time&&session.resultB?.time){
+    const ratio=session.resultB.time/session.resultA.time;
+    const rs=ratio.toFixed(2);
+    let rc='#3B6D11',rl='正常範囲',fc='#639922';
+    if(ratio>=4.0){rc='#A32D2D';rl='有意な障害の可能性';fc='#A32D2D';}
+    else if(ratio>=3.0){rc='#BA7517';rl='軽度障害の疑い';fc='#EF9F27';}
+    const pct=Math.min((ratio/6)*100,100).toFixed(1);
+    html+=`<div class="section-label">B/A比 — セットシフティング評価</div>
+    <div class="analysis-card">
+      <div class="ba-ratio">
+        <div class="ba-num" style="color:${rc}">${rs}</div>
+        <div class="ba-label" style="color:${rc}">${rl}</div>
+      </div>
+      <div class="ba-bar-wrap"><div class="ba-fill" style="width:${pct}%;background:${fc}"></div></div>
+      <div class="ba-scale">2.0〜3.0：正常　3.0〜4.0：軽度疑い　4.0以上：有意な障害</div>
+    </div>`;
+  }
+
+  $$('result-body').innerHTML=html;
+  $$('retry-btn').onclick=()=>startMode(session.mode);
+  $$('retry-btn').textContent='もう一度';
+  showScreen('result-screen');
+}
+
+// ===== LOG =====
+function getLogs(){
+  try{ const d=localStorage.getItem(LOG_KEY); return d?JSON.parse(d):[]; }catch(e){return [];}
+}
+function saveLog(session){
+  try{
+    const logs=getLogs();
+    logs.unshift(session);
+    if(logs.length>100) logs.length=100;
+    localStorage.setItem(LOG_KEY,JSON.stringify(logs));
+  }catch(e){}
+}
+function clearLog(){
+  if(!confirm('ログをすべて削除しますか？')) return;
+  try{localStorage.removeItem(LOG_KEY);}catch(e){}
+  renderLog();
+}
+
+function renderLog(){
+  const logs=getLogs();
+  const el=$$('log-body');
+  if(logs.length===0){
+    el.innerHTML='<div class="empty-log">記録はまだありません。<br>トレーニングを実施すると<br>自動的に保存されます。</div>';
+    return;
+  }
+  const mLabel={A:'Part A のみ',B:'Part B のみ',AB:'A+B 連続'};
+  const mCls={A:'a',B:'b',AB:'ab'};
+  el.innerHTML=logs.map(sess=>{
+    const d=new Date(sess.date).toLocaleString('ja-JP',{year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    let inner=`<div class="log-top"><span class="log-mode ${mCls[sess.mode]}">${mLabel[sess.mode]}</span><span class="log-date">${d}</span></div>`;
+
+    function partRow(r,lbl){
+      const t=r.time?r.time.toFixed(1)+'秒':'300秒超';
+      const et=r.errorTypes||{};
+      const eParts=[];
+      if(et.perseveration) eParts.push('保続'+et.perseveration);
+      if(et.set) eParts.push('セット'+et.set);
+      if(et.random) eParts.push('無関係'+et.random);
+      const eStr=eParts.length?'（'+eParts.join('/')+')':'';
+      return `<div class="log-part-label">${lbl}</div>
+      <div class="log-stats">
+        <div class="log-stat">タイム：<b>${t}</b></div>
+        <div class="log-stat">達成：<b>${r.reached}/${r.count}</b></div>
+        <div class="log-stat">エラー：<b>${r.errors}回${eStr}</b></div>
+      </div>`;
+    }
+
+    if(sess.resultA) inner+=partRow(sess.resultA,'Part A');
+    if(sess.resultA&&sess.resultB) inner+=`<div class="log-divider"></div>`;
+    if(sess.resultB) inner+=partRow(sess.resultB,'Part B');
+    if(sess.resultA?.time&&sess.resultB?.time){
+      const ratio=(sess.resultB.time/sess.resultA.time).toFixed(2);
+      let rc='#3B6D11'; if(ratio>=4.0) rc='#A32D2D'; else if(ratio>=3.0) rc='#BA7517';
+      inner+=`<div class="log-divider"></div><div class="log-ba">B/A比：<b style="color:${rc}">${ratio}</b></div>`;
+    }
+    return `<div class="log-entry">${inner}</div>`;
+  }).join('');
+}
+
+window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{ if(S.nodes.length) drawAll(); });
+window.addEventListener('resize',()=>{ if(document.getElementById('task-screen').classList.contains('active')) initCanvas(); });
+</script>
+</body>
+</html>
